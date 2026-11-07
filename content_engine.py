@@ -48,7 +48,7 @@ Requirements:
 9. Never invent statistics, quotations or news.
 10. Preserve source links for factual claims.
 11. Do not copy article text.
-12. Use HMA MEDIA as temporary branding.
+12. Use DIPLOX as the official brand identity.
 
 Return ONLY valid JSON in this format:
 
