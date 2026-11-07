@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 # HMA-01 basic settings
 
 PROJECT_NAME = "HMA-01"
-BRAND_NAME = "HMA MEDIA"
+BRAND_NAME = "DIPLOX"
 
 # AI configuration
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
