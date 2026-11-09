@@ -1,33 +1,33 @@
 
-name: DIPLOX Auto Launch
+name: HMA-01 Pipeline Test
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  diplox:
+  hma-pipeline:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - name: Connect repository
+      - name: Get HMA-01 code
         uses: actions/checkout@v4
 
-      - name: Start Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install requirements
+      - name: Install dependencies
         run: |
-          pip install feedparser
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Launch DIPLOX Research
-        run: |
-          python research_engine.py
+      - name: Run HMA-01
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python main.py
+
