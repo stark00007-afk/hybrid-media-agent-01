@@ -8,7 +8,8 @@ BRAND_NAME = "DIPLOX"
 
 # AI configuration
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-gemini-3.8-flash = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 
 # Discord configuration
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
