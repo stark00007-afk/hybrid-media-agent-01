@@ -1,34 +1,46 @@
+
 import os
 from zoneinfo import ZoneInfo
 
-# HMA-01 basic settings
-
+# PROJECT SETTINGS
 PROJECT_NAME = "HMA-01"
 BRAND_NAME = "DIPLOX"
 
-# AI configuration
+# GEMINI API SETTINGS
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 
-# Discord configuration
+# DISCORD SETTINGS
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
-# Publishing configuration
+# TIMEZONE
 TIMEZONE = ZoneInfo("Asia/Kolkata")
 
+# PUBLISH SETTINGS
 PUBLISH_TIMES = ["09:00", "18:00"]
-PREVIEW_TIMES = ["08:30", "17:30"]
+PREVIEW_TIME = "08:30"
 
+# APPROVAL SETTINGS
 CANCELLATION_WINDOW_MINUTES = 30
+INDIVIDUAL_CANCEL_MODE = True
 
-# Content categories
+# CONTENT CATEGORIES
 CONTENT_CATEGORIES = [
-    "Technology",
-    "Gaming",
-    "Entrepreneurship"
+    "technology",
+    "gaming",
+    "entrepreneurship"
 ]
 
-# Safety settings
-PUBLISH_ONLY_IF_APPROVED = True
-FAIL_CLOSED = True
+# CONTENT SETTINGS
+POSTS_PER_DAY = 2
+PLATFORMS = [
+    "Instagram",
+    "YouTube",
+    "Facebook"
+]
+
+# SAFETY SETTINGS
+REQUIRE_APPROVAL = True
+AUTO_PUBLISH = False
+
