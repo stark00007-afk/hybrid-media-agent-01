@@ -1,8 +1,10 @@
-
+ 
 import json
 import os
+import time
 
 from google import genai
+from google.genai import errors
 from config import GEMINI_MODEL
 
 
@@ -77,21 +79,63 @@ Return ONLY valid JSON in this format:
 Return exactly two posts.
 """
 
-    response = client.models.generate_content(
-        model=GEMINI_MODEL,
-        contents=prompt
-    )
+    # Gemini request with automatic retry
+    max_attempts = 3
 
-    result = json.loads(response.text)
+    for attempt in range(max_attempts):
+        try:
+            print(
+                f"Gemini request: attempt "
+                f"{attempt + 1}/{max_attempts}"
+            )
 
-    posts = result.get("posts", [])
+            response = client.models.generate_content(
+                model=GEMINI_MODEL,
+                contents=prompt
+            )
 
-    if len(posts) != 2:
-        raise ValueError("Gemini did not generate exactly two posts.")
+            if not response.text:
+                raise RuntimeError(
+                    "Gemini returned an empty response."
+                )
 
-    return posts
+            result = json.loads(response.text)
+            posts = result.get("posts", [])
+
+            if len(posts) != 2:
+                raise ValueError(
+                    "Gemini did not generate exactly two posts."
+                )
+
+            return posts
+
+        except errors.ServerError as error:
+
+            # Retry temporary HTTP 503 errors only.
+            if (
+                getattr(error, "code", None) != 503
+                and "503" not in str(error)
+            ):
+                raise
+
+            if attempt == max_attempts - 1:
+                raise RuntimeError(
+                    "Gemini remained unavailable after "
+                    "3 attempts."
+                ) from error
+
+            wait_time = 2 ** (attempt + 1)
+
+            print(
+                f"Gemini temporarily unavailable. "
+                f"Retrying in {wait_time} seconds..."
+            )
+
+            time.sleep(wait_time)
+
+    raise RuntimeError("Gemini request failed.")
 
 
 if __name__ == "__main__":
     print("HMA-01 Content Engine is ready.")
-    print("It needs research articles and a Gemini API key to generate content.")
+    print("It needs research articles and a Gemini API key.")
