@@ -1,4 +1,4 @@
-
+ 
 name: DIPLOX Creative Director Test
 
 on:
@@ -32,4 +32,4 @@ jobs:
 
       - name: Initialize Creative Director
         run: |
-          python intelligence/creative_director.py
+          python -m intelligence.creative_director
