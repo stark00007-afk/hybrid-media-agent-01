@@ -1,13 +1,21 @@
-
+ 
 import json
 import os
 import re
 import time
 
 from google import genai
-from google.genai import errors
+from google.genai import errors, types
 
 from config import GEMINI_MODEL
+
+
+# ==============================
+# DIPLOX REQUEST CONFIGURATION
+# ==============================
+
+REQUEST_TIMEOUT_MS = 90_000
+MAX_ATTEMPTS = 2
 
 
 def clean_json_response(text):
@@ -99,7 +107,17 @@ def create_creative_briefs(articles, count=2):
             "Count must be between 1 and 5."
         )
 
-    client = genai.Client(api_key=api_key)
+    # Limit SDK retries so requests cannot silently
+    # consume the entire GitHub Actions runtime.
+    client = genai.Client(
+        api_key=api_key,
+        http_options=types.HttpOptions(
+            timeout=REQUEST_TIMEOUT_MS,
+            retry_options=types.HttpRetryOptions(
+                attempts=1
+            )
+        )
+    )
 
     research_data = json.dumps(
         articles[:15],
@@ -199,20 +217,25 @@ Use exactly this structure:
 Generate exactly {count} different creative briefs.
 """
 
-
-    max_attempts = 3
-
-    for attempt in range(max_attempts):
+    for attempt in range(MAX_ATTEMPTS):
 
         try:
             print(
-                f"Creative Director: attempt "
-                f"{attempt + 1}/{max_attempts}"
+                f"\nCreative Director: "
+                f"attempt {attempt + 1}/{MAX_ATTEMPTS}"
+            )
+
+            print(
+                f"Request timeout: "
+                f"{REQUEST_TIMEOUT_MS // 1000} seconds"
             )
 
             response = client.models.generate_content(
                 model=GEMINI_MODEL,
-                contents=prompt
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json"
+                )
             )
 
             if not response.text:
@@ -226,7 +249,17 @@ Generate exactly {count} different creative briefs.
 
             briefs = result.get("briefs", [])
 
-            return validate_briefs(briefs, count)
+            validated_briefs = validate_briefs(
+                briefs,
+                count
+            )
+
+            print(
+                "Creative Director successfully "
+                "generated and validated briefs."
+            )
+
+            return validated_briefs
 
         except errors.ServerError as error:
 
@@ -238,20 +271,35 @@ Generate exactly {count} different creative briefs.
             if not is_server_error:
                 raise
 
-            if attempt == max_attempts - 1:
+            if attempt == MAX_ATTEMPTS - 1:
                 raise RuntimeError(
-                    "Creative Director unavailable "
-                    "after 3 attempts."
+                    "Gemini server unavailable after "
+                    f"{MAX_ATTEMPTS} attempts."
                 ) from error
 
-            wait_time = 2 ** (attempt + 1)
+            wait_time = 2
 
             print(
-                f"Gemini unavailable. "
+                f"Gemini server unavailable. "
                 f"Retrying in {wait_time} seconds..."
             )
 
             time.sleep(wait_time)
+
+        except Exception as error:
+
+            print(
+                "\nCREATIVE DIRECTOR ERROR:"
+            )
+
+            print(
+                f"{type(error).__name__}: {error}"
+            )
+
+            raise RuntimeError(
+                "Creative Director request failed. "
+                "Check the error above."
+            ) from error
 
     raise RuntimeError(
         "Creative Director failed."
@@ -261,4 +309,3 @@ Generate exactly {count} different creative briefs.
 if __name__ == "__main__":
     print("DIPLOX HMA-01 Creative Director")
     print("Module initialized successfully.")
-
